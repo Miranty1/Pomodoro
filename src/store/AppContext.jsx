@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useState } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
 
 const AppContext = createContext(null)
@@ -19,6 +19,8 @@ const DEFAULT_STATS = {
 }
 
 export function AppProvider({ children }) {
+  const [activeTaskId, setActiveTaskId] = useState(null)
+  const [badgeToasts, setBadgeToasts] = useState([])
   const [tasks, setTasks] = useLocalStorage('tasks', [])
   const [sessions, setSessions] = useLocalStorage('sessions', [])
   const [calendarDays, setCalendarDays] = useLocalStorage('calendarDays', {})
@@ -28,6 +30,8 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
+      activeTaskId, setActiveTaskId,
+      badgeToasts, setBadgeToasts,
       tasks, setTasks,
       sessions, setSessions,
       calendarDays, setCalendarDays,

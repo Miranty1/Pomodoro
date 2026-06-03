@@ -1,4 +1,7 @@
 import './Home.css'
+import PomodoroTimer from '../components/PomodoroTimer'
+import TaskList from '../components/TaskList'
+import ProgressCard from '../components/ProgressCard'
 
 function PlaceholderCard({ title, style }) {
   return (
@@ -11,11 +14,10 @@ function PlaceholderCard({ title, style }) {
 function Home() {
   return (
     <div className="home-grid">
-      <PlaceholderCard title="Timer" style={{ gridArea: 'timer' }} />
-      <PlaceholderCard title="Calendar" style={{ gridArea: 'calendar' }} />
-      <PlaceholderCard title="Progress Report" style={{ gridArea: 'progress' }} />
+      <PomodoroTimer />
+      <TaskList />
       <PlaceholderCard title="Music" style={{ gridArea: 'music' }} />
-      <PlaceholderCard title="Tasks" style={{ gridArea: 'tasks' }} />
+      <ProgressCard />
     </div>
   )
 }

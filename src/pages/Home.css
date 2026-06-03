@@ -1,13 +1,14 @@
 .home-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  grid-template-rows: 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 2fr) minmax(0, 1fr);
   grid-template-areas:
-    'timer calendar'
-    'timer progress'
-    'music tasks';
-  gap: 16px;
+    'timer tasks'
+    'progress music';
+  gap: clamp(12px, 1.5vw, 20px);
   height: calc(100vh - 100px);
+  max-width: 1800px;
+  margin: 0 auto;
 }
 
 .placeholder-card {
@@ -30,10 +31,10 @@
     grid-template-rows: auto;
     grid-template-areas:
       'timer'
-      'calendar'
-      'progress'
+      'tasks'
       'music'
-      'tasks';
+      'progress';
     height: auto;
+    min-height: 0;
   }
 }
