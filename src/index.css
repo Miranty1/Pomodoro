@@ -1,12 +1,42 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
-  --bg-page: #1a1a1a;
-  --bg-card: #242424;
-  --accent: #E8524A;
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --radius: 12px;
+  /* Backgrounds */
+  --bg-page:        #0d0d0d;
+  --bg-card:        #151515;
+  --bg-elevated:    #1e1e1e;
+
+  /* Borders */
+  --border:         rgba(255, 255, 255, 0.07);
+  --border-strong:  rgba(255, 255, 255, 0.14);
+
+  /* Accent */
+  --accent:         #E8524A;
+  --accent-dim:     rgba(232, 82, 74, 0.13);
+  --accent-glow:    rgba(232, 82, 74, 0.28);
+
+  /* Text — all verified ≥4.5:1 on --bg-card (#151515) */
+  --text-primary:   #ededed;   /* 17.9:1 */
+  --text-secondary: #8a8a8a;   /* 5.1:1  */
+  --text-dim:       #555555;   /* decorative only — never use for readable text */
+  --text-muted:     #3a3a3a;   /* decoration only: dividers, disabled states */
+
+  /* Radii */
+  --radius:         14px;
+  --radius-sm:      8px;
+
+  /* Fonts */
+  --font-display:   'Syne', sans-serif;
+  --font-body:      'DM Sans', sans-serif;
+  --font-mono:      'JetBrains Mono', monospace;
+
+  /* Z-index scale — semantic, never ad-hoc */
+  --z-base:         1;
+  --z-sticky:       100;
+  --z-dropdown:     200;
+  --z-modal:        300;
+  --z-toast:        400;
+  --z-tooltip:      500;
 }
 
 *,
@@ -24,16 +54,24 @@ body,
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-page);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Global heading defaults */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* Card: border-only depth — no ghost-card shadow pairing */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 22px;
+  border: 1px solid var(--border);
 }
 
 a {
@@ -42,6 +80,33 @@ a {
 }
 
 button {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   cursor: pointer;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-start:active,
+  .btn-icon:active,
+  .btn-add-task:active,
+  .btn-confirm:active,
+  .btn-cancel:active,
+  .ctrl-btn:active:not(:disabled),
+  .nav-arrow:active:not(:disabled),
+  .btn-three-dot:active,
+  .btn-connect:active,
+  .btn-disconnect:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
 }

@@ -1,11 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useApp } from '../store/AppContext'
 import './TaskList.css'
 
-function TaskRow({ task, isActive, menuOpen, onSelect, onToggleComplete, onMenuToggle, onEdit, onDelete }) {
+function TaskRow({ task, isActive, menuOpen, onSelect, onToggleComplete, onMenuToggle, onEdit, onDelete, className }) {
+  const btnRef = useRef(null)
+  const [dropPos, setDropPos] = useState(null)
+
+  function handleMenuClick(e) {
+    e.stopPropagation()
+    if (!menuOpen && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect()
+      setDropPos({ top: r.bottom + 4, right: window.innerWidth - r.right })
+    }
+    onMenuToggle(e)
+  }
+
   return (
     <div
-      className={`task-row${isActive ? ' active' : ''}${task.completed ? ' done' : ''}`}
+      className={`task-row${isActive ? ' active' : ''}${task.completed ? ' done' : ''} ${className ?? ''}`}
       onClick={onSelect}
     >
       <input
@@ -17,15 +30,19 @@ function TaskRow({ task, isActive, menuOpen, onSelect, onToggleComplete, onMenuT
       />
       <span className="task-name">{task.title}</span>
       <span className="task-pomos">
-        {task.completedPomodoros ?? 0}/{task.estimatedPomodoros ?? 1} Pomos
+        {task.completedPomodoros ?? 0}/{task.estimatedPomodoros ?? 1}
       </span>
       <div className="task-menu-wrap" onClick={e => e.stopPropagation()}>
-        <button className="btn-three-dot" onClick={onMenuToggle} title="More options">⋯</button>
-        {menuOpen && (
-          <div className="task-dropdown">
-            <button onClick={onEdit}>Edit</button>
-            <button onClick={onDelete}>Delete</button>
-          </div>
+        <button ref={btnRef} className="btn-three-dot" onClick={handleMenuClick} title="Task options">⋯</button>
+        {menuOpen && dropPos && createPortal(
+          <div
+            className="task-dropdown"
+            style={{ position: 'fixed', top: dropPos.top, right: dropPos.right }}
+          >
+            <button onClick={e => { e.stopPropagation(); onEdit() }}>Edit task</button>
+            <button className="task-dropdown-danger" onClick={e => { e.stopPropagation(); onDelete() }}>Delete task</button>
+          </div>,
+          document.body
         )}
       </div>
     </div>
@@ -50,7 +67,7 @@ function TaskEditRow({ editTitle, setEditTitle, editPomos, setEditPomos, onSave,
         {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n}</option>)}
       </select>
       <button className="btn-cancel" onClick={onCancel}>Cancel</button>
-      <button className="btn-confirm" onClick={onSave}>Save</button>
+      <button className="btn-confirm" onClick={onSave}>Save changes</button>
     </div>
   )
 }
@@ -65,6 +82,8 @@ export default function TaskList() {
   const [editingId, setEditingId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [editPomos, setEditPomos] = useState(2)
+  const [removingIds, setRemovingIds] = useState(new Set())
+  const [newlyAddedId, setNewlyAddedId] = useState(null)
 
   // Close menu on outside click
   useEffect(() => {
@@ -89,6 +108,8 @@ export default function TaskList() {
       completed: false,
     }
     setTasks([...tasks, newTask])
+    setNewlyAddedId(newTask.id)
+    setTimeout(() => setNewlyAddedId(null), 250)
     setFormTitle('')
     setFormPomos(2)
     setShowForm(false)
@@ -100,9 +121,13 @@ export default function TaskList() {
   }
 
   function handleDelete(id) {
-    setTasks(tasks.filter(t => t.id !== id))
-    if (activeTaskId === id) setActiveTaskId(null)
+    setRemovingIds(prev => new Set([...prev, id]))
     setOpenMenuId(null)
+    setTimeout(() => {
+      setTasks(tasks.filter(t => t.id !== id))
+      setRemovingIds(prev => { const s = new Set(prev); s.delete(id); return s })
+      if (activeTaskId === id) setActiveTaskId(null)
+    }, 210)
   }
 
   function handleEditSave(id) {
@@ -133,6 +158,7 @@ export default function TaskList() {
           className="btn-add-task"
           onClick={() => setShowForm(v => !v)}
           title="Add task"
+          aria-label="Add task"
         >
           +
         </button>
@@ -142,7 +168,7 @@ export default function TaskList() {
         <div className="task-add-form">
           <input
             className="task-input"
-            placeholder="Task name…"
+            placeholder="What are you working on?"
             value={formTitle}
             onChange={e => setFormTitle(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowForm(false) }}
@@ -159,7 +185,7 @@ export default function TaskList() {
             </select>
             <div className="task-form-actions">
               <button className="btn-cancel" onClick={() => setShowForm(false)}>Cancel</button>
-              <button className="btn-confirm" onClick={handleAdd}>Add</button>
+              <button className="btn-confirm" onClick={handleAdd}>Add task</button>
             </div>
           </div>
         </div>
@@ -167,7 +193,7 @@ export default function TaskList() {
 
       <div className="task-rows">
         {sortedTasks.length === 0 && (
-          <p className="task-empty">No tasks yet. Hit + to add one.</p>
+          <p className="task-empty">No tasks yet — add one to get started.</p>
         )}
         {sortedTasks.map(task =>
           editingId === task.id ? (
@@ -186,6 +212,10 @@ export default function TaskList() {
               task={task}
               isActive={activeTaskId === task.id}
               menuOpen={openMenuId === task.id}
+              className={
+                removingIds.has(task.id) ? 'task-row--exiting' :
+                newlyAddedId === task.id ? 'task-row--entering' : ''
+              }
               onSelect={() => handleSelectTask(task)}
               onToggleComplete={() => handleToggleComplete(task.id)}
               onMenuToggle={e => {

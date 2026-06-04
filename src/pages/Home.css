@@ -5,8 +5,8 @@
   grid-template-areas:
     'timer tasks'
     'progress music';
-  gap: clamp(12px, 1.5vw, 20px);
-  height: calc(100vh - 100px);
+  gap: clamp(10px, 1.2vw, 16px);
+  height: calc(100vh - 92px);
   max-width: 1800px;
   margin: 0 auto;
 }
@@ -20,9 +20,11 @@
 
 .placeholder-label {
   color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--font-display);
 }
 
 @media (max-width: 768px) {

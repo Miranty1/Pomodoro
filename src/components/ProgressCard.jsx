@@ -110,10 +110,12 @@ export default function ProgressCard() {
               <div className="bar-track">
                 {!isFuture && count > 0 && (
                   <div
-                    className="bar-fill"
+                    key={`${ds}-${weekOffset}`}
+                    className="bar-fill bar-fill--animate"
                     style={{
                       height: `${pct}%`,
                       background: isToday ? 'var(--accent)' : '#555',
+                      animationDelay: `${i * 40}ms`,
                     }}
                   />
                 )}

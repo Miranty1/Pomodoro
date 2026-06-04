@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   dailyGoal: 8,
   startHour: 6,
   endHour: 22,
+  notifications: false,
 }
 
 const DEFAULT_STATS = {

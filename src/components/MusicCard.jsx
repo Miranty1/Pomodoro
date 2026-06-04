@@ -55,6 +55,7 @@ export default function MusicCard() {
     const verifier  = generateCodeVerifier()
     const challenge = await generateCodeChallenge(verifier)
     sessionStorage.setItem('spotify_code_verifier', verifier)
+    console.log('[Spotify] redirect_uri being sent:', JSON.stringify(REDIRECT_URI))
     window.location.href = buildAuthUrl(CLIENT_ID, REDIRECT_URI, challenge)
   }
 
@@ -160,16 +161,16 @@ export default function MusicCard() {
       {/* Connected — now playing */}
       {connected && !status && playback?.item && (
         <>
-          <div className="now-playing">
+          <div className="album-art-wrap">
             {art
               ? <img className="album-art" src={art} alt="album art" />
               : <div className="album-art-placeholder">♫</div>
             }
-            <div className="track-info">
-              <div className="track-name">{playback.item.name}</div>
-              <div className="artist-name">
-                {playback.item.artists?.map(a => a.name).join(', ')}
-              </div>
+          </div>
+          <div className="track-info">
+            <div className="track-name">{playback.item.name}</div>
+            <div className="artist-name">
+              {playback.item.artists?.map(a => a.name).join(', ')}
             </div>
           </div>
 

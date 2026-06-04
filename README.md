@@ -1,34 +1,34 @@
-# Paul - The Pomodoro Timer
+# Paul — The Pomodoro Timer
 
-A focused Pomodoro timer app built with React + Vite.
+A focused Pomodoro timer built with React + Vite. Tracks sessions, streaks, tasks, and focus scores. Spotify playback control optional.
 
-## Local Development
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-App runs at http://localhost:5173
+App runs at `http://localhost:5173`
 
 ## Build
 
 ```bash
-npm run build
-npm run preview
+npm run build     # production build → dist/
+npm run preview   # preview the production build locally
 ```
 
 ## Deploy to Vercel
 
 1. Push this repo to GitHub
 2. Go to [vercel.com](https://vercel.com) and click **Add New Project**
-3. Import your GitHub repository
-4. Framework preset is detected automatically as **Vite**
-5. No extra build settings needed — click **Deploy**
+3. Import your GitHub repository — framework preset auto-detects as **Vite**
+4. Add environment variables under **Settings → Environment Variables** (see below)
+5. Click **Deploy**
 
-The `vercel.json` in this repo configures SPA client-side routing rewrites automatically.
+`vercel.json` configures SPA client-side routing rewrites so deep links and the Spotify OAuth callback work correctly.
 
-## Environment Variables
+## Environment variables
 
 Copy `.env.example` to `.env.local` and fill in your values:
 
@@ -36,17 +36,29 @@ Copy `.env.example` to `.env.local` and fill in your values:
 cp .env.example .env.local
 ```
 
-To add environment variables in Vercel: go to your project → **Settings** → **Environment Variables**. All variable names must use the `VITE_` prefix.
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_SPOTIFY_CLIENT_ID` | Optional | Spotify app client ID — enables the Music card |
+| `VITE_SPOTIFY_REDIRECT_URI` | Optional | OAuth redirect URI — must match exactly what's registered in your Spotify app |
 
-## Data Storage
+### Spotify redirect URI
 
-All app data is stored in the browser's `localStorage` under these keys:
+Register **both** URIs in your [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) under **Redirect URIs**:
+
+- Local: `http://localhost:5173/callback`
+- Production: `https://<your-project>.vercel.app/callback`
+
+Set `VITE_SPOTIFY_REDIRECT_URI` to the URI for each environment. In Vercel, add it as an environment variable scoped to **Production** and a separate one scoped to **Preview/Development** with the localhost value.
+
+## Data storage
+
+All app data lives in `localStorage` — no backend required. Keys:
 
 | Key | Shape |
-|-----|-------|
+|---|---|
 | `tasks` | `[{ id, title, estimatedPomodoros, completedPomodoros, done }]` |
-| `sessions` | `[{ id, taskId, date, startTime, endTime, completed }]` |
-| `calendarDays` | `{ 'YYYY-MM-DD': { planned: [], actual: [] } }` |
-| `badges` | `[{ id, unlockedAt }]` |
+| `sessions` | `[{ date: 'YYYY-MM-DD', count: number }]` |
+| `badges` | `[{ id, unlockedAt: ISO string }]` |
 | `stats` | `{ totalSessions, currentStreak, longestStreak }` |
-| `settings` | `{ workMins, breakMins, longBreakMins, dailyGoal, startHour, endHour }` |
+| `settings` | `{ workMins, breakMins, longBreakMins, dailyGoal, startHour, endHour, notifications }` |
+| `calendarDays` | `{ 'YYYY-MM-DD': { planned, actual } }` |

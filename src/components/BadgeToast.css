@@ -1,49 +1,56 @@
 .badge-toast {
   position: fixed;
-  top: 72px;
-  right: 24px;
-  z-index: 1000;
+  top: 68px;
+  right: 20px;
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   padding: 14px 18px;
-  background: var(--bg-card);
-  border: 1px solid var(--accent);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(232, 82, 74, 0.35);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 0 rgba(255,255,255,0.04), 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(232, 82, 74, 0.08);
   min-width: 240px;
+  max-width: 300px;
   animation: toast-show 4s ease forwards;
   pointer-events: none;
 }
 
 .toast-icon {
-  font-size: 28px;
+  font-size: 26px;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .toast-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .toast-title {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-display);
 }
 
 .toast-name {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.2;
 }
 
 .toast-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
+  font-family: var(--font-body);
+  line-height: 1.4;
 }
 
 @keyframes toast-show {

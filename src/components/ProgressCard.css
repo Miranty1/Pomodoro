@@ -2,7 +2,7 @@
   grid-area: progress;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   position: relative;
   overflow: visible;
 }
@@ -16,39 +16,42 @@
 }
 
 .prog-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  font-family: var(--font-body);
+  letter-spacing: -0.01em;
 }
 
 /* Week navigation */
 .week-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .nav-arrow {
-  background: transparent;
-  border: none;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
   color: var(--text-secondary);
-  font-size: 18px;
-  width: 24px;
-  height: 24px;
+  font-size: 16px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
-  font-family: Inter, sans-serif;
+  border-radius: 5px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  font-family: var(--font-body);
   line-height: 1;
   padding: 0;
 }
 
 .nav-arrow:hover:not(:disabled) {
   color: var(--text-primary);
-  background: #333;
+  background: rgba(255,255,255,0.10);
+  border-color: var(--border-strong);
 }
 
 .nav-arrow:disabled {
@@ -57,18 +60,19 @@
 }
 
 .week-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
   white-space: nowrap;
-  min-width: 100px;
+  min-width: 90px;
   text-align: center;
+  font-family: var(--font-body);
 }
 
 /* Bar chart */
 .bar-chart {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   align-items: stretch;
   flex: 1;
   padding-bottom: 2px;
@@ -79,24 +83,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
 .bar-track {
   width: 100%;
   flex: 1;
-  background: #2a2a2a;
-  border-radius: 4px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 5px;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
+  border: 1px solid var(--border);
 }
 
 .bar-fill {
   width: 100%;
   border-radius: 4px 4px 0 0;
   transition: height 0.3s ease;
+  transform-origin: bottom center;
 }
 
 .bar-label {
@@ -104,13 +110,17 @@
   color: var(--text-secondary);
   user-select: none;
   flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 .bar-date {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-secondary);
   user-select: none;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 /* Tooltip */
@@ -119,23 +129,36 @@
   z-index: 20;
   pointer-events: none;
   transform: translateX(-50%);
-  background: #1a1a1a;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  padding: 9px 12px;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .tip-date {
   font-size: 11px;
   color: var(--text-secondary);
   margin-bottom: 4px;
+  font-family: var(--font-body);
 }
 
 .tip-stat {
   font-size: 12px;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
+  font-family: var(--font-body);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes bar-grow {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+  }
+
+  .bar-fill--animate {
+    animation: bar-grow 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
 }

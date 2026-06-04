@@ -10,7 +10,7 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <NavBar />
-      <main style={{ flex: 1, padding: '24px' }}>
+      <main style={{ flex: 1, padding: '20px 24px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/statistics" element={<Statistics />} />

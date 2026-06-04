@@ -77,6 +77,7 @@ export default function PomodoroTimer() {
   const [mode, setMode] = useState('pomodoro')
   const [isRunning, setIsRunning] = useState(false)
   const [timeLeft, setTimeLeft] = useState(null)
+  const [completePulse, setCompletePulse] = useState(false)
 
   const intervalRef = useRef(null)
   const modeRef = useRef('pomodoro')
@@ -133,6 +134,11 @@ export default function PomodoroTimer() {
     }
     playChime()
     triggerConfetti()
+    setCompletePulse(true)
+    setTimeout(() => setCompletePulse(false), 1200)
+    if ((settings.notifications ?? false) && Notification.permission === 'granted') {
+      new Notification('Session complete', { body: 'Time for a break. Great work.' })
+    }
     updateSessionsAndStats()
     setIsRunning(false)
     // Delay mode switch so stats update settles first
@@ -232,12 +238,13 @@ export default function PomodoroTimer() {
         </div>
 
         <div className="timer-clock-wrap">
-          <svg className="timer-svg" viewBox="0 0 270 270">
+          <svg className={`timer-svg${completePulse ? ' timer-svg--complete' : ''}`} viewBox="0 0 270 270">
             {/* Background ring */}
             <circle cx="135" cy="135" r="120" fill="none" stroke="#333" strokeWidth="2" />
 
             {/* Elapsed arc */}
             <circle
+              className={isRunning ? 'timer-arc--running' : ''}
               cx="135"
               cy="135"
               r={CLOCK_RADIUS}
@@ -270,6 +277,7 @@ export default function PomodoroTimer() {
 
             {/* Sweep hand */}
             <line
+              className={isRunning ? 'sweep-hand sweep-hand--ticking' : 'sweep-hand'}
               x1="135"
               y1="135"
               x2="135"
@@ -290,10 +298,10 @@ export default function PomodoroTimer() {
               textAnchor="middle"
               dominantBaseline="central"
               fill="var(--text-primary)"
-              fontSize="48"
-              fontFamily="Inter, sans-serif"
-              fontWeight="700"
-              letterSpacing="-1"
+              fontSize="46"
+              fontFamily="'JetBrains Mono', monospace"
+              fontWeight="500"
+              letterSpacing="-0.5"
             >
               {formatTime(safeTimeLeft)}
             </text>
@@ -315,7 +323,7 @@ export default function PomodoroTimer() {
         <div className="active-task">
           <span className="active-task-label">Current Task</span>
           <span className="active-task-name">
-            {activeTask ? `#${activeTask.id} – ${activeTask.title}` : 'No task selected'}
+            {activeTask ? activeTask.title : 'No task selected'}
           </span>
         </div>
         <div className="timer-meta">
@@ -325,7 +333,7 @@ export default function PomodoroTimer() {
           </div>
           <div className="meta-item">
             <div className="meta-value">{focusScore}</div>
-            <div className="meta-label">Focus Score</div>
+            <div className="meta-label">Focus</div>
           </div>
         </div>
       </div>
