@@ -10,7 +10,7 @@ const MODES = {
   longBreak:  { label: 'Long Break',  key: 'longBreakMins' },
 }
 
-const CLOCK_RADIUS = 108
+const CLOCK_RADIUS = 120
 const CIRCUMFERENCE = 2 * Math.PI * CLOCK_RADIUS
 
 function todayStr() {
@@ -118,7 +118,6 @@ export default function PomodoroTimer() {
   const safeTimeLeft = timeLeft ?? totalSeconds
   const elapsed = totalSeconds - safeTimeLeft
   const arcLength = totalSeconds > 0 ? (elapsed / totalSeconds) * CIRCUMFERENCE : 0
-  const sweepAngle = totalSeconds > 0 ? (elapsed / totalSeconds) * 360 : 0
 
   function switchMode(newMode) {
     clearInterval(intervalRef.current)
@@ -250,7 +249,7 @@ export default function PomodoroTimer() {
               r={CLOCK_RADIUS}
               fill="none"
               stroke="var(--accent)"
-              strokeWidth="6"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={`${arcLength} ${CIRCUMFERENCE}`}
               transform="rotate(-90 135 135)"
@@ -275,21 +274,6 @@ export default function PomodoroTimer() {
               )
             })}
 
-            {/* Sweep hand */}
-            <line
-              className={isRunning ? 'sweep-hand sweep-hand--ticking' : 'sweep-hand'}
-              x1="135"
-              y1="135"
-              x2="135"
-              y2="22"
-              stroke="var(--accent)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              transform={`rotate(${sweepAngle} 135 135)`}
-            />
-
-            {/* Center pivot */}
-            <circle cx="135" cy="135" r="4" fill="var(--accent)" />
 
             {/* Countdown text */}
             <text

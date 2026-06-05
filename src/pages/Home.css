@@ -34,8 +34,8 @@
     grid-template-areas:
       'timer'
       'tasks'
-      'music'
-      'progress';
+      'progress'
+      'music';
     height: auto;
     min-height: 0;
   }

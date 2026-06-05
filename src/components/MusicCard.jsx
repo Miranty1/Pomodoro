@@ -107,7 +107,7 @@ export default function MusicCard() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  const art = playback?.item?.album?.images?.[2]?.url  // 64px thumbnail
+  const art = playback?.item?.album?.images?.[0]?.url  // 640px full-res
   const progressPct = playback?.item
     ? (playback.progress_ms / playback.item.duration_ms) * 100
     : 0
@@ -160,17 +160,63 @@ export default function MusicCard() {
 
       {/* Connected — now playing */}
       {connected && !status && playback?.item && (
-        <>
-          <div className="album-art-wrap">
-            {art
-              ? <img className="album-art" src={art} alt="album art" />
-              : <div className="album-art-placeholder">♫</div>
-            }
+        <div className="music-player">
+          <div className="music-player-left">
+            <div className="album-art-wrap">
+              {art
+                ? <img className="album-art" src={art} alt="album art" />
+                : <div className="album-art-placeholder">♫</div>
+              }
+            </div>
           </div>
-          <div className="track-info">
-            <div className="track-name">{playback.item.name}</div>
-            <div className="artist-name">
-              {playback.item.artists?.map(a => a.name).join(', ')}
+
+          <div className="music-player-right">
+            <div className="track-info">
+              <div className="track-name">{playback.item.name}</div>
+              <div className="artist-name">
+                {playback.item.artists?.map(a => a.name).join(', ')}
+              </div>
+            </div>
+
+            <div className="controls">
+              <button
+                className={`ctrl-btn${playback.shuffle_state ? ' active' : ''}`}
+                onClick={handleShuffle}
+                disabled={pending}
+                title="Shuffle"
+              >⇄</button>
+
+              <button
+                className="ctrl-btn"
+                onClick={() => handleAction(previous)}
+                disabled={pending}
+                title="Previous"
+              >⏮</button>
+
+              <button
+                className="ctrl-btn play-btn"
+                onClick={handlePlayPause}
+                disabled={pending}
+                title={playback.is_playing ? 'Pause' : 'Play'}
+              >
+                {playback.is_playing ? '⏸' : '▶'}
+              </button>
+
+              <button
+                className="ctrl-btn"
+                onClick={() => handleAction(next)}
+                disabled={pending}
+                title="Next"
+              >⏭</button>
+
+              <button
+                className={`ctrl-btn${playback.repeat_state !== 'off' ? ' active' : ''}`}
+                onClick={handleRepeat}
+                disabled={pending}
+                title={`Repeat: ${playback.repeat_state}`}
+              >
+                {playback.repeat_state === 'track' ? '🔂' : '↻'}
+              </button>
             </div>
           </div>
 
@@ -183,48 +229,7 @@ export default function MusicCard() {
               <span>{msToTime(playback.item.duration_ms)}</span>
             </div>
           </div>
-
-          <div className="controls">
-            <button
-              className={`ctrl-btn${playback.shuffle_state ? ' active' : ''}`}
-              onClick={handleShuffle}
-              disabled={pending}
-              title="Shuffle"
-            >⇄</button>
-
-            <button
-              className="ctrl-btn"
-              onClick={() => handleAction(previous)}
-              disabled={pending}
-              title="Previous"
-            >⏮</button>
-
-            <button
-              className="ctrl-btn play-btn"
-              onClick={handlePlayPause}
-              disabled={pending}
-              title={playback.is_playing ? 'Pause' : 'Play'}
-            >
-              {playback.is_playing ? '⏸' : '▶'}
-            </button>
-
-            <button
-              className="ctrl-btn"
-              onClick={() => handleAction(next)}
-              disabled={pending}
-              title="Next"
-            >⏭</button>
-
-            <button
-              className={`ctrl-btn${playback.repeat_state !== 'off' ? ' active' : ''}`}
-              onClick={handleRepeat}
-              disabled={pending}
-              title={`Repeat: ${playback.repeat_state}`}
-            >
-              {playback.repeat_state === 'track' ? '🔂' : '↻'}
-            </button>
-          </div>
-        </>
+        </div>
       )}
     </div>
   )

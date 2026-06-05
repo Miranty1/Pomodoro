@@ -123,6 +123,12 @@
   font-family: var(--font-mono);
 }
 
+@media (max-width: 768px) {
+  .progress-card {
+    min-height: 220px;
+  }
+}
+
 /* Tooltip */
 .prog-tooltip {
   position: absolute;

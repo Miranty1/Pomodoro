@@ -258,9 +258,6 @@
     transform: scale(0.96);
   }
 
-  .sweep-hand--ticking {
-    transition: transform 0.9s linear;
-  }
 
   @keyframes timer-pulse {
     0%, 100% { opacity: 1; }
