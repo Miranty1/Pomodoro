@@ -83,6 +83,8 @@ export default function PomodoroTimer() {
   const modeRef = useRef('pomodoro')
   const activeTaskIdRef = useRef(null)
   const sessionStartHour = useRef(null)
+  const timerStartRef = useRef(null)
+  const timeLeftAtStartRef = useRef(null)
 
   // Keep modeRef in sync
   useEffect(() => { modeRef.current = mode }, [mode])
@@ -96,21 +98,45 @@ export default function PomodoroTimer() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.workMins, settings.breakMins, settings.longBreakMins, mode])
 
-  // Countdown tick
+  // Countdown tick — timestamp-based so minimized/background tabs stay accurate
   useEffect(() => {
     if (!isRunning) return
+    timerStartRef.current = Date.now()
+    timeLeftAtStartRef.current = timeLeft
+
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current)
-          handleSessionComplete()
-          return 0
-        }
-        return prev - 1
-      })
+      const elapsed = Math.floor((Date.now() - timerStartRef.current) / 1000)
+      const next = timeLeftAtStartRef.current - elapsed
+      if (next <= 0) {
+        clearInterval(intervalRef.current)
+        setTimeLeft(0)
+        handleSessionComplete()
+      } else {
+        setTimeLeft(next)
+      }
     }, 1000)
     return () => clearInterval(intervalRef.current)
   // handleSessionComplete is stable (reads refs, not state)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning])
+
+  // Catch up immediately when the tab becomes visible again
+  useEffect(() => {
+    if (!isRunning) return
+    const onVisible = () => {
+      if (document.hidden) return
+      const elapsed = Math.floor((Date.now() - timerStartRef.current) / 1000)
+      const next = timeLeftAtStartRef.current - elapsed
+      if (next <= 0) {
+        clearInterval(intervalRef.current)
+        setTimeLeft(0)
+        handleSessionComplete()
+      } else {
+        setTimeLeft(next)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning])
 
