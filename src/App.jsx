@@ -26,7 +26,7 @@ function App() {
           <ProtectedRoute>
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
               <NavBar />
-              <main style={{ flex: 1, padding: '20px 24px' }}>
+              <main className="app-main">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/statistics" element={<Statistics />} />

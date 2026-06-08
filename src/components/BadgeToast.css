@@ -53,6 +53,15 @@
   line-height: 1.4;
 }
 
+@media (max-width: 480px) {
+  .badge-toast {
+    right: 12px;
+    left: 12px;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
 @keyframes toast-show {
   0%   { transform: translateX(calc(100% + 24px)); opacity: 0; }
   8%   { transform: translateX(0); opacity: 1; }

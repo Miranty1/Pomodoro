@@ -1,0 +1,9 @@
+@media (max-width: 480px) {
+  .navbar { padding: 0 16px !important; }
+  .navbar-brand-sub,
+  .navbar-brand-divider { display: none; }
+}
+
+@media (max-width: 360px) {
+  .navbar-links a { padding: 6px 10px !important; }
+}

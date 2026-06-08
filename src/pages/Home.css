@@ -27,6 +27,12 @@
   font-family: var(--font-display);
 }
 
+@media (max-height: 768px) {
+  .home-grid {
+    grid-template-rows: minmax(0, 2fr) minmax(180px, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .home-grid {
     grid-template-columns: 1fr;

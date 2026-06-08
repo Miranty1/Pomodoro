@@ -95,6 +95,15 @@ button {
   background: rgba(255, 255, 255, 0.2);
 }
 
+.app-main {
+  flex: 1;
+  padding: 20px 24px;
+}
+
+@media (max-width: 600px) {
+  .app-main { padding: 14px 14px; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .btn-start:active,
   .btn-icon:active,

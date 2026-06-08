@@ -192,6 +192,11 @@
 
 /* ── Reduced motion ────────────────────────────────────────────────────────── */
 
+@media (max-width: 480px) {
+  .settings-row { gap: 12px; padding: 12px 14px; }
+  .settings-section-label { padding: 10px 14px 8px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .toggle-thumb,
   .toggle-switch,

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import './NavBar.css'
 
 const navItems = [
   { label: 'Timer', to: '/' },
@@ -8,15 +9,15 @@ const navItems = [
 
 function NavBar() {
   return (
-    <nav style={styles.nav}>
+    <nav style={styles.nav} className="navbar">
       <div style={styles.inner}>
         <div style={styles.brand}>
           <span style={styles.brandDot} />
           <span style={styles.brandName}>PAUL</span>
-          <span style={styles.brandDivider} />
-          <span style={styles.brandSub}>Focus Timer</span>
+          <span style={styles.brandDivider} className="navbar-brand-divider" />
+          <span style={styles.brandSub} className="navbar-brand-sub">Focus Timer</span>
         </div>
-        <div style={styles.links}>
+        <div style={styles.links} className="navbar-links">
           {navItems.map(({ label, to }) => (
             <NavLink
               key={to}
