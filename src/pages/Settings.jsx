@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../store/AppContext'
+import { useAuth } from '../store/AuthContext'
 import { hasStoredToken, clearTokens, getValidToken } from '../lib/spotify'
 import './Settings.css'
 
@@ -51,6 +52,7 @@ function Toggle({ id, checked, onChange }) {
 
 export default function Settings() {
   const { settings, setSettings } = useApp()
+  const { signOut } = useAuth()
   const [spotifyConnected, setSpotifyConnected] = useState(hasStoredToken())
   const [spotifyName, setSpotifyName]           = useState(null)
 
@@ -190,6 +192,21 @@ export default function Settings() {
             </div>
           </label>
           <Toggle id="notif-toggle" checked={notifOn} onChange={handleNotifToggle} />
+        </div>
+      </section>
+
+      {/* ── Account ────────────────────────────────────────── */}
+      <section className="settings-section">
+        <header className="settings-section-label">Account</header>
+
+        <div className="settings-row">
+          <div className="settings-row-text">
+            <div className="settings-row-label">Sign out</div>
+            <div className="settings-row-desc">You will be redirected to the login page</div>
+          </div>
+          <button className="settings-btn-ghost" onClick={signOut}>
+            Sign out
+          </button>
         </div>
       </section>
     </div>
