@@ -11,8 +11,12 @@ function formatTime(seconds) {
   return `${m}:${s}`
 }
 
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+  return localDateStr()
 }
 
 export default function PomodoroTimer() {
@@ -34,7 +38,7 @@ export default function PomodoroTimer() {
     const last7 = Array.from({ length: 7 }, (_, i) => {
       const d = new Date()
       d.setDate(d.getDate() - (7 - i))
-      return d.toISOString().slice(0, 10)
+      return localDateStr(d)
     })
     const activeDays = last7.filter(d => sessions.some(s => s.date === d && s.count > 0)).length
     const consistencyBonus = (activeDays / 7) * 20

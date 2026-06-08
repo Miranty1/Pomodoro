@@ -4,8 +4,12 @@ import './ProgressCard.css'
 
 const DAY_ABBRS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function todayStr() {
-  return new Date().toISOString().slice(0, 10)
+  return localDateStr()
 }
 
 function getCount(sessions, dateStr) {
@@ -53,7 +57,7 @@ export default function ProgressCard() {
   const today = todayStr()
   const weekDays = getWeekDays(weekOffset)
   const maxWeekCount = Math.max(
-    ...weekDays.map(d => getCount(sessions, d.toISOString().slice(0, 10))),
+    ...weekDays.map(d => getCount(sessions, localDateStr(d))),
     settings.dailyGoal,
     1
   )
@@ -95,7 +99,7 @@ export default function ProgressCard() {
       {/* Weekly bar chart */}
       <div className="bar-chart">
         {weekDays.map((d, i) => {
-          const ds = d.toISOString().slice(0, 10)
+          const ds = localDateStr(d)
           const count = getCount(sessions, ds)
           const pct = (count / maxWeekCount) * 100
           const isToday = ds === today
