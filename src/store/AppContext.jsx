@@ -264,12 +264,12 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!user) return
     function handleOnline() {
-      supabase.from('tasks').upsert(tasksToRows(tasks, user.id)).catch(() => {})
-      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id)).catch(() => {})
-      supabase.from('calendar_days').upsert(calendarDaysToRows(calendarDays, user.id), { onConflict: 'user_id,date' }).catch(() => {})
-      supabase.from('badges').upsert(badgesToRows(badges, user.id), { onConflict: 'user_id,badge_id' }).catch(() => {})
-      supabase.from('stats').upsert(statsToRow(stats, user.id)).catch(() => {})
-      supabase.from('settings').upsert(settingsToRow(settings, user.id)).catch(() => {})
+      supabase.from('tasks').upsert(tasksToRows(tasks, user.id)).then(null, () => {})
+      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id)).then(null, () => {})
+      supabase.from('calendar_days').upsert(calendarDaysToRows(calendarDays, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
+      supabase.from('badges').upsert(badgesToRows(badges, user.id), { onConflict: 'user_id,badge_id' }).then(null, () => {})
+      supabase.from('stats').upsert(statsToRow(stats, user.id)).then(null, () => {})
+      supabase.from('settings').upsert(settingsToRow(settings, user.id)).then(null, () => {})
     }
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
@@ -284,9 +284,9 @@ export function AppProvider({ children }) {
     // Upsert all current tasks; if a task was removed, delete it
     const nextIds = new Set(next.map(t => t.id))
     const removed = tasks.filter(t => !nextIds.has(t.id))
-    supabase.from('tasks').upsert(tasksToRows(next, user.id)).catch(() => {})
+    supabase.from('tasks').upsert(tasksToRows(next, user.id)).then(null, () => {})
     if (removed.length) {
-      supabase.from('tasks').delete().in('id', removed.map(t => t.id)).catch(() => {})
+      supabase.from('tasks').delete().in('id', removed.map(t => t.id)).then(null, () => {})
     }
   }
 
@@ -298,7 +298,7 @@ export function AppProvider({ children }) {
     if (newRows.length) {
       supabase.from('sessions').upsert(sessionsToRows(newRows, user.id)).then(() => {
         newRows.forEach(s => syncedSessionIds.current.add(s.id))
-      }).catch(() => {})
+      }).then(null, () => {})
     }
   }
 
@@ -306,28 +306,28 @@ export function AppProvider({ children }) {
     const next = value instanceof Function ? value(calendarDays) : value
     setCalendarDaysLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('calendar_days').upsert(calendarDaysToRows(next, user.id), { onConflict: 'user_id,date' }).catch(() => {})
+    supabase.from('calendar_days').upsert(calendarDaysToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
   }
 
   function setBadges(value) {
     const next = value instanceof Function ? value(badges) : value
     setBadgesLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('badges').upsert(badgesToRows(next, user.id), { onConflict: 'user_id,badge_id' }).catch(() => {})
+    supabase.from('badges').upsert(badgesToRows(next, user.id), { onConflict: 'user_id,badge_id' }).then(null, () => {})
   }
 
   function setStats(value) {
     const next = value instanceof Function ? value(stats) : value
     setStatsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('stats').upsert(statsToRow(next, user.id)).catch(() => {})
+    supabase.from('stats').upsert(statsToRow(next, user.id)).then(null, () => {})
   }
 
   function setSettings(value) {
     const next = value instanceof Function ? value(settings) : value
     setSettingsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('settings').upsert(settingsToRow(next, user.id)).catch(() => {})
+    supabase.from('settings').upsert(settingsToRow(next, user.id)).then(null, () => {})
   }
 
   return (
