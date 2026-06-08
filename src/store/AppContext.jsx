@@ -246,12 +246,12 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!user) return
     function handleOnline() {
-      supabase.from('tasks').upsert(tasksToRows(tasks, user.id)).then(null, () => {})
-      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
-      supabase.from('calendar_days').upsert(calendarDaysToRows(calendarDays, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
-      supabase.from('badges').upsert(badgesToRows(badges, user.id), { onConflict: 'user_id,badge_id' }).then(null, () => {})
-      supabase.from('stats').upsert(statsToRow(stats, user.id), { onConflict: 'user_id' }).then(null, () => {})
-      supabase.from('settings').upsert(settingsToRow(settings, user.id), { onConflict: 'user_id' }).then(null, () => {})
+      supabase.from('tasks').upsert(tasksToRows(tasks, user.id)).then(null, err => console.error('Supabase sync error:', err))
+      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id), { onConflict: 'user_id,date' }).then(null, err => console.error('Supabase sync error:', err))
+      supabase.from('calendar_days').upsert(calendarDaysToRows(calendarDays, user.id), { onConflict: 'user_id,date' }).then(null, err => console.error('Supabase sync error:', err))
+      supabase.from('badges').upsert(badgesToRows(badges, user.id), { onConflict: 'user_id,badge_id' }).then(null, err => console.error('Supabase sync error:', err))
+      supabase.from('stats').upsert(statsToRow(stats, user.id), { onConflict: 'user_id' }).then(null, err => console.error('Supabase sync error:', err))
+      supabase.from('settings').upsert(settingsToRow(settings, user.id), { onConflict: 'user_id' }).then(null, err => console.error('Supabase sync error:', err))
     }
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
@@ -265,9 +265,9 @@ export function AppProvider({ children }) {
     if (!user || !navigator.onLine) return
     const nextIds = new Set(next.map(t => t.id))
     const removed = tasks.filter(t => !nextIds.has(t.id))
-    supabase.from('tasks').upsert(tasksToRows(next, user.id)).then(null, () => {})
+    supabase.from('tasks').upsert(tasksToRows(next, user.id)).then(null, err => console.error('Supabase sync error:', err))
     if (removed.length) {
-      supabase.from('tasks').delete().in('id', removed.map(t => t.id)).then(null, () => {})
+      supabase.from('tasks').delete().in('id', removed.map(t => t.id)).then(null, err => console.error('Supabase sync error:', err))
     }
   }
 
@@ -275,35 +275,35 @@ export function AppProvider({ children }) {
     const next = value instanceof Function ? value(sessions) : value
     setSessionsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('sessions').upsert(sessionsToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
+    supabase.from('sessions').upsert(sessionsToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, err => console.error('Supabase sync error:', err))
   }
 
   function setCalendarDays(value) {
     const next = value instanceof Function ? value(calendarDays) : value
     setCalendarDaysLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('calendar_days').upsert(calendarDaysToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
+    supabase.from('calendar_days').upsert(calendarDaysToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, err => console.error('Supabase sync error:', err))
   }
 
   function setBadges(value) {
     const next = value instanceof Function ? value(badges) : value
     setBadgesLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('badges').upsert(badgesToRows(next, user.id), { onConflict: 'user_id,badge_id' }).then(null, () => {})
+    supabase.from('badges').upsert(badgesToRows(next, user.id), { onConflict: 'user_id,badge_id' }).then(null, err => console.error('Supabase sync error:', err))
   }
 
   function setStats(value) {
     const next = value instanceof Function ? value(stats) : value
     setStatsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('stats').upsert(statsToRow(next, user.id), { onConflict: 'user_id' }).then(null, () => {})
+    supabase.from('stats').upsert(statsToRow(next, user.id), { onConflict: 'user_id' }).then(null, err => console.error('Supabase sync error:', err))
   }
 
   function setSettings(value) {
     const next = value instanceof Function ? value(settings) : value
     setSettingsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('settings').upsert(settingsToRow(next, user.id), { onConflict: 'user_id' }).then(null, () => {})
+    supabase.from('settings').upsert(settingsToRow(next, user.id), { onConflict: 'user_id' }).then(null, err => console.error('Supabase sync error:', err))
   }
 
   return (
