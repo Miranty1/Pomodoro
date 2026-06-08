@@ -152,6 +152,9 @@ async function fetchAll(userId) {
     supabase.from('stats').select('*').eq('user_id', userId).maybeSingle(),
     supabase.from('settings').select('*').eq('user_id', userId).maybeSingle(),
   ])
+  for (const result of [tasks, sessions, calDays, badges, stats, settings]) {
+    if (result.error) throw result.error
+  }
   return { tasks, sessions, calDays, badges, stats, settings }
 }
 
