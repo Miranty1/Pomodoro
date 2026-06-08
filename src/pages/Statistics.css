@@ -68,6 +68,7 @@
 
 .stats-section .progress-card {
   grid-area: unset;
+  min-height: 220px;
 }
 
 /* ── Monthly heatmap ─────────────────────────────────────────────────────── */
