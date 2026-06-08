@@ -101,7 +101,7 @@ export default function TaskList() {
   function handleAdd() {
     if (!formTitle.trim()) return
     const newTask = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       title: formTitle.trim(),
       estimatedPomodoros: formPomos,
       completedPomodoros: 0,
