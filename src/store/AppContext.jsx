@@ -231,12 +231,13 @@ export function AppProvider({ children }) {
       }
 
       // Supabase has data — load it into state (and update localStorage cache)
-      if (t.data)       setTasksLocal(rowsToTasks(t.data))
-      if (s.data)       setSessionsLocal(rowsToSessions(s.data))
-      if (calDays.data) setCalendarDaysLocal(rowsToCalendarDays(calDays.data))
-      if (b.data)       setBadgesLocal(rowsToBadges(b.data))
-      if (st.data)      setStatsLocal(rowToStats(st.data))
-      if (se.data)      setSettingsLocal(rowToSettings(se.data))
+      console.log('[sync] loading from Supabase — sessions:', s.data, 'stats:', st.data)
+      if (t.data?.length)  setTasksLocal(rowsToTasks(t.data))
+      if (s.data?.length)  setSessionsLocal(rowsToSessions(s.data))
+      if (calDays.data?.length) setCalendarDaysLocal(rowsToCalendarDays(calDays.data))
+      if (b.data?.length)  setBadgesLocal(rowsToBadges(b.data))
+      if (st.data)         setStatsLocal(rowToStats(st.data))
+      if (se.data)         setSettingsLocal(rowToSettings(se.data))
     }
 
     load().catch(err => console.error('Supabase load failed:', err))
@@ -273,9 +274,14 @@ export function AppProvider({ children }) {
 
   function setSessions(value) {
     const next = value instanceof Function ? value(sessions) : value
+    console.log('[sync] setSessions called with:', next)
     setSessionsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('sessions').upsert(sessionsToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, err => console.error('Supabase sync error:', err))
+    supabase.from('sessions').upsert(sessionsToRows(next, user.id), { onConflict: 'user_id,date' })
+      .then(
+        () => console.log('[sync] sessions upsert ok, rows:', sessionsToRows(next, user.id)),
+        err => console.error('Supabase sync error:', err)
+      )
   }
 
   function setCalendarDays(value) {
