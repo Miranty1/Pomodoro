@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
 import { useAuth } from './AuthContext'
 import { supabase } from '../lib/supabase'
@@ -95,13 +95,14 @@ function settingsToRow(settings, userId) {
   }
 }
 
+// Tasks: Supabase column is "done"; app field is "completed"
 function rowsToTasks(rows) {
   return rows.map(r => ({
     id: r.id,
     title: r.title,
     estimatedPomodoros: r.estimated_pomodoros,
     completedPomodoros: r.completed_pomodoros,
-    done: r.done,
+    completed: r.done,
     createdAt: r.created_at,
   }))
 }
@@ -113,31 +114,21 @@ function tasksToRows(tasks, userId) {
     title: t.title,
     estimated_pomodoros: t.estimatedPomodoros ?? t.estimated_pomodoros ?? 1,
     completed_pomodoros: t.completedPomodoros ?? t.completed_pomodoros ?? 0,
-    done: t.done ?? false,
+    done: t.completed ?? t.done ?? false,
     created_at: t.createdAt ?? t.created_at ?? new Date().toISOString(),
   }))
 }
 
+// Sessions: stored as { date, count } — one row per user per day
 function rowsToSessions(rows) {
-  return rows.map(r => ({
-    id: r.id,
-    taskId: r.task_id,
-    date: r.date,
-    startTime: r.start_time,
-    endTime: r.end_time,
-    completed: r.completed,
-  }))
+  return rows.map(r => ({ date: r.date, count: r.count }))
 }
 
 function sessionsToRows(sessions, userId) {
   return sessions.map(s => ({
-    id: s.id,
     user_id: userId,
-    task_id: s.taskId ?? s.task_id ?? null,
-    date: s.date ?? null,
-    start_time: s.startTime ?? s.start_time ?? null,
-    end_time: s.endTime ?? s.end_time ?? null,
-    completed: s.completed ?? true,
+    date: s.date,
+    count: s.count ?? 0,
   }))
 }
 
@@ -165,7 +156,7 @@ async function migrateToSupabase(userId, local) {
     ops.push(supabase.from('tasks').upsert(tasksToRows(local.tasks, userId)))
   }
   if (local.sessions?.length) {
-    ops.push(supabase.from('sessions').upsert(sessionsToRows(local.sessions, userId)))
+    ops.push(supabase.from('sessions').upsert(sessionsToRows(local.sessions, userId), { onConflict: 'user_id,date' }))
   }
   if (local.calendarDays && Object.keys(local.calendarDays).length) {
     ops.push(supabase.from('calendar_days').upsert(calendarDaysToRows(local.calendarDays, userId), { onConflict: 'user_id,date' }))
@@ -174,10 +165,10 @@ async function migrateToSupabase(userId, local) {
     ops.push(supabase.from('badges').upsert(badgesToRows(local.badges, userId), { onConflict: 'user_id,badge_id' }))
   }
   if (local.stats) {
-    ops.push(supabase.from('stats').upsert(statsToRow(local.stats, userId)))
+    ops.push(supabase.from('stats').upsert(statsToRow(local.stats, userId), { onConflict: 'user_id' }))
   }
   if (local.settings) {
-    ops.push(supabase.from('settings').upsert(settingsToRow(local.settings, userId)))
+    ops.push(supabase.from('settings').upsert(settingsToRow(local.settings, userId), { onConflict: 'user_id' }))
   }
 
   await Promise.all(ops)
@@ -190,15 +181,12 @@ export function AppProvider({ children }) {
   const [activeTaskId, setActiveTaskId] = useState(null)
   const [badgeToasts, setBadgeToasts] = useState([])
 
-  const [tasks, setTasksLocal]           = useLocalStorage('tasks', [])
-  const [sessions, setSessionsLocal]     = useLocalStorage('sessions', [])
+  const [tasks, setTasksLocal]               = useLocalStorage('tasks', [])
+  const [sessions, setSessionsLocal]         = useLocalStorage('sessions', [])
   const [calendarDays, setCalendarDaysLocal] = useLocalStorage('calendarDays', {})
-  const [badges, setBadgesLocal]         = useLocalStorage('badges', [])
-  const [stats, setStatsLocal]           = useLocalStorage('stats', DEFAULT_STATS)
-  const [settings, setSettingsLocal]     = useLocalStorage('settings', DEFAULT_SETTINGS)
-
-  // Track which session IDs we've already synced so we don't double-insert
-  const syncedSessionIds = useRef(new Set())
+  const [badges, setBadgesLocal]             = useLocalStorage('badges', [])
+  const [stats, setStatsLocal]               = useLocalStorage('stats', DEFAULT_STATS)
+  const [settings, setSettingsLocal]         = useLocalStorage('settings', DEFAULT_SETTINGS)
 
   // ── Load from Supabase when user authenticates ──────────────────────────
   useEffect(() => {
@@ -239,22 +227,16 @@ export function AppProvider({ children }) {
             settings: localSettings,
           })
         }
-        // Mark already-synced sessions
-        localSessions.forEach(s => syncedSessionIds.current.add(s.id))
         return
       }
 
       // Supabase has data — load it into state (and update localStorage cache)
-      if (t.data) { const v = rowsToTasks(t.data); setTasksLocal(v) }
-      if (s.data) {
-        const v = rowsToSessions(s.data)
-        setSessionsLocal(v)
-        v.forEach(s => syncedSessionIds.current.add(s.id))
-      }
-      if (calDays.data) { setCalendarDaysLocal(rowsToCalendarDays(calDays.data)) }
-      if (b.data)       { setBadgesLocal(rowsToBadges(b.data)) }
-      if (st.data)      { setStatsLocal(rowToStats(st.data)) }
-      if (se.data)      { setSettingsLocal(rowToSettings(se.data)) }
+      if (t.data)       setTasksLocal(rowsToTasks(t.data))
+      if (s.data)       setSessionsLocal(rowsToSessions(s.data))
+      if (calDays.data) setCalendarDaysLocal(rowsToCalendarDays(calDays.data))
+      if (b.data)       setBadgesLocal(rowsToBadges(b.data))
+      if (st.data)      setStatsLocal(rowToStats(st.data))
+      if (se.data)      setSettingsLocal(rowToSettings(se.data))
     }
 
     load().catch(err => console.error('Supabase load failed:', err))
@@ -265,11 +247,11 @@ export function AppProvider({ children }) {
     if (!user) return
     function handleOnline() {
       supabase.from('tasks').upsert(tasksToRows(tasks, user.id)).then(null, () => {})
-      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id)).then(null, () => {})
+      supabase.from('sessions').upsert(sessionsToRows(sessions, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
       supabase.from('calendar_days').upsert(calendarDaysToRows(calendarDays, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
       supabase.from('badges').upsert(badgesToRows(badges, user.id), { onConflict: 'user_id,badge_id' }).then(null, () => {})
-      supabase.from('stats').upsert(statsToRow(stats, user.id)).then(null, () => {})
-      supabase.from('settings').upsert(settingsToRow(settings, user.id)).then(null, () => {})
+      supabase.from('stats').upsert(statsToRow(stats, user.id), { onConflict: 'user_id' }).then(null, () => {})
+      supabase.from('settings').upsert(settingsToRow(settings, user.id), { onConflict: 'user_id' }).then(null, () => {})
     }
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
@@ -281,7 +263,6 @@ export function AppProvider({ children }) {
     const next = value instanceof Function ? value(tasks) : value
     setTasksLocal(next)
     if (!user || !navigator.onLine) return
-    // Upsert all current tasks; if a task was removed, delete it
     const nextIds = new Set(next.map(t => t.id))
     const removed = tasks.filter(t => !nextIds.has(t.id))
     supabase.from('tasks').upsert(tasksToRows(next, user.id)).then(null, () => {})
@@ -294,12 +275,7 @@ export function AppProvider({ children }) {
     const next = value instanceof Function ? value(sessions) : value
     setSessionsLocal(next)
     if (!user || !navigator.onLine) return
-    const newRows = next.filter(s => !syncedSessionIds.current.has(s.id))
-    if (newRows.length) {
-      supabase.from('sessions').upsert(sessionsToRows(newRows, user.id)).then(() => {
-        newRows.forEach(s => syncedSessionIds.current.add(s.id))
-      }).then(null, () => {})
-    }
+    supabase.from('sessions').upsert(sessionsToRows(next, user.id), { onConflict: 'user_id,date' }).then(null, () => {})
   }
 
   function setCalendarDays(value) {
@@ -320,14 +296,14 @@ export function AppProvider({ children }) {
     const next = value instanceof Function ? value(stats) : value
     setStatsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('stats').upsert(statsToRow(next, user.id)).then(null, () => {})
+    supabase.from('stats').upsert(statsToRow(next, user.id), { onConflict: 'user_id' }).then(null, () => {})
   }
 
   function setSettings(value) {
     const next = value instanceof Function ? value(settings) : value
     setSettingsLocal(next)
     if (!user || !navigator.onLine) return
-    supabase.from('settings').upsert(settingsToRow(next, user.id)).then(null, () => {})
+    supabase.from('settings').upsert(settingsToRow(next, user.id), { onConflict: 'user_id' }).then(null, () => {})
   }
 
   return (
