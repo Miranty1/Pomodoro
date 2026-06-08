@@ -1,27 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
-import confetti from 'canvas-confetti'
 import { useApp } from '../store/AppContext'
-import { checkBadges } from '../lib/badges'
+import { useTimer, MODES } from '../store/TimerContext'
 import './PomodoroTimer.css'
-
-const MODES = {
-  pomodoro:   { label: 'Pomodoro',    key: 'workMins' },
-  shortBreak: { label: 'Short Break', key: 'breakMins' },
-  longBreak:  { label: 'Long Break',  key: 'longBreakMins' },
-}
 
 const CLOCK_RADIUS = 120
 const CIRCUMFERENCE = 2 * Math.PI * CLOCK_RADIUS
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function yesterdayStr() {
-  const d = new Date()
-  d.setDate(d.getDate() - 1)
-  return d.toISOString().slice(0, 10)
-}
 
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0')
@@ -29,188 +11,20 @@ function formatTime(seconds) {
   return `${m}:${s}`
 }
 
-function recalculateStreak(newSessions, currentStreak) {
-  const today = todayStr()
-  const yesterday = yesterdayStr()
-  const todayEntry = newSessions.find(s => s.date === today)
-  const yesterdayEntry = newSessions.find(s => s.date === yesterday)
-
-  // Not the first session today — streak already counted
-  if (todayEntry && todayEntry.count > 1) return currentStreak
-
-  return (yesterdayEntry && yesterdayEntry.count > 0) ? currentStreak + 1 : 1
-}
-
-function playChime() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    ;[523.25, 659.25, 783.99].forEach((freq, i) => {
-      const osc = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(freq, ctx.currentTime)
-      const t = ctx.currentTime + i * 0.18
-      gain.gain.setValueAtTime(0, t)
-      gain.gain.linearRampToValueAtTime(0.25, t + 0.02)
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8)
-      osc.start(t)
-      osc.stop(t + 0.8)
-    })
-  } catch {}
-}
-
-function triggerConfetti() {
-  confetti({
-    particleCount: 80,
-    spread: 70,
-    origin: { y: 0.5 },
-    colors: ['#E8524A', '#ffffff', '#ff9999', '#ffcc00'],
-    disableForReducedMotion: true,
-  })
+function todayStr() {
+  return new Date().toISOString().slice(0, 10)
 }
 
 export default function PomodoroTimer() {
-  const { tasks, setTasks, sessions, setSessions, stats, setStats, settings, activeTaskId, badges, setBadges, setBadgeToasts } = useApp()
-
-  const [mode, setMode] = useState('pomodoro')
-  const [isRunning, setIsRunning] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(null)
-  const [completePulse, setCompletePulse] = useState(false)
-
-  const intervalRef = useRef(null)
-  const modeRef = useRef('pomodoro')
-  const activeTaskIdRef = useRef(null)
-  const sessionStartHour = useRef(null)
-  const timerStartRef = useRef(null)
-  const timeLeftAtStartRef = useRef(null)
-
-  // Keep modeRef in sync
-  useEffect(() => { modeRef.current = mode }, [mode])
-  useEffect(() => { activeTaskIdRef.current = activeTaskId }, [activeTaskId])
-
-  // Init / reset timeLeft when mode or settings change (only when not running)
-  useEffect(() => {
-    if (!isRunning) {
-      setTimeLeft(settings[MODES[mode].key] * 60)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.workMins, settings.breakMins, settings.longBreakMins, mode])
-
-  // Countdown tick — timestamp-based so minimized/background tabs stay accurate
-  useEffect(() => {
-    if (!isRunning) return
-    timerStartRef.current = Date.now()
-    timeLeftAtStartRef.current = timeLeft
-
-    intervalRef.current = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - timerStartRef.current) / 1000)
-      const next = timeLeftAtStartRef.current - elapsed
-      if (next <= 0) {
-        clearInterval(intervalRef.current)
-        setTimeLeft(0)
-        handleSessionComplete()
-      } else {
-        setTimeLeft(next)
-      }
-    }, 1000)
-    return () => clearInterval(intervalRef.current)
-  // handleSessionComplete is stable (reads refs, not state)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning])
-
-  // Catch up immediately when the tab becomes visible again
-  useEffect(() => {
-    if (!isRunning) return
-    const onVisible = () => {
-      if (document.hidden) return
-      const elapsed = Math.floor((Date.now() - timerStartRef.current) / 1000)
-      const next = timeLeftAtStartRef.current - elapsed
-      if (next <= 0) {
-        clearInterval(intervalRef.current)
-        setTimeLeft(0)
-        handleSessionComplete()
-      } else {
-        setTimeLeft(next)
-      }
-    }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRunning])
+  const { tasks, sessions, stats, settings, activeTaskId } = useApp()
+  const { mode, isRunning, timeLeft, completePulse, switchMode, handleStart, handleStop, handleReset } = useTimer()
 
   const totalSeconds = settings[MODES[mode].key] * 60
   const safeTimeLeft = timeLeft ?? totalSeconds
   const elapsed = totalSeconds - safeTimeLeft
   const arcLength = totalSeconds > 0 ? (elapsed / totalSeconds) * CIRCUMFERENCE : 0
 
-  function switchMode(newMode) {
-    clearInterval(intervalRef.current)
-    setMode(newMode)
-    setIsRunning(false)
-    setTimeLeft(settings[MODES[newMode].key] * 60)
-  }
-
-  function handleSessionComplete() {
-    if (modeRef.current !== 'pomodoro') {
-      switchMode('pomodoro')
-      return
-    }
-    playChime()
-    triggerConfetti()
-    setCompletePulse(true)
-    setTimeout(() => setCompletePulse(false), 1200)
-    if ((settings.notifications ?? false) && Notification.permission === 'granted') {
-      new Notification('Session complete', { body: 'Time for a break. Great work.' })
-    }
-    updateSessionsAndStats()
-    setIsRunning(false)
-    // Delay mode switch so stats update settles first
-    setTimeout(() => switchMode('shortBreak'), 100)
-  }
-
-  function updateSessionsAndStats() {
-    const today = todayStr()
-    const newSessions = sessions.some(s => s.date === today)
-      ? sessions.map(s => s.date === today ? { ...s, count: s.count + 1 } : s)
-      : [...sessions, { date: today, count: 1 }]
-
-    setSessions(newSessions)
-
-    const newStreak = recalculateStreak(newSessions, stats.currentStreak)
-    setStats({
-      totalSessions: stats.totalSessions + 1,
-      currentStreak: newStreak,
-      longestStreak: Math.max(stats.longestStreak, newStreak),
-    })
-
-    if (activeTaskIdRef.current !== null) {
-      setTasks(prev => prev.map(t =>
-        t.id === activeTaskIdRef.current
-          ? { ...t, completedPomodoros: (t.completedPomodoros ?? 0) + 1 }
-          : t
-      ))
-    }
-
-    const newStats = {
-      totalSessions: stats.totalSessions + 1,
-      currentStreak: newStreak,
-      longestStreak: Math.max(stats.longestStreak, newStreak),
-    }
-    const { newBadges, newlyUnlocked } = checkBadges({
-      newSessions,
-      newStats,
-      settings,
-      badges,
-      startHour: sessionStartHour.current ?? new Date().getHours(),
-      completeHour: new Date().getHours(),
-    })
-    if (newlyUnlocked.length > 0) {
-      setBadges(newBadges)
-      setBadgeToasts(prev => [...prev, ...newlyUnlocked])
-    }
-  }
+  const activeTask = tasks.find(t => t.id === activeTaskId) ?? null
 
   function calcFocusScore() {
     const today = todayStr()
@@ -227,23 +41,6 @@ export default function PomodoroTimer() {
     return Math.round(goalScore + streakScore + consistencyBonus)
   }
 
-  function handleStart() {
-    sessionStartHour.current = new Date().getHours()
-    setIsRunning(true)
-  }
-
-  function handleStop() {
-    clearInterval(intervalRef.current)
-    setIsRunning(false)
-  }
-
-  function handleReset() {
-    clearInterval(intervalRef.current)
-    setIsRunning(false)
-    setTimeLeft(totalSeconds)
-  }
-
-  const activeTask = tasks.find(t => t.id === activeTaskId) ?? null
   const focusScore = calcFocusScore()
 
   return (
@@ -299,7 +96,6 @@ export default function PomodoroTimer() {
                 />
               )
             })}
-
 
             {/* Countdown text */}
             <text
